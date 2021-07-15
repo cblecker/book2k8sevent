@@ -4,32 +4,22 @@ package main
 import (
 	"bufio"
 	"bytes"
-	"flag"
-	"path/filepath"
 	"time"
 
 	"github.com/golang/glog"
+	appsv1 "k8s.io/api/apps/v1"
 	v1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/client-go/kubernetes"
 	"k8s.io/client-go/kubernetes/scheme"
 	typedcorev1 "k8s.io/client-go/kubernetes/typed/core/v1"
-	"k8s.io/client-go/tools/clientcmd"
+	"k8s.io/client-go/rest"
 	"k8s.io/client-go/tools/record"
-	"k8s.io/client-go/util/homedir"
 )
 
 func main() {
-	var kubeconfig *string
-	if home := homedir.HomeDir(); home != "" {
-		kubeconfig = flag.String("kubeconfig", filepath.Join(home, ".kube", "config"), "(optional) absolute path to the kubeconfig file")
-	} else {
-		kubeconfig = flag.String("kubeconfig", "", "absolute path to the kubeconfig file")
-	}
-	flag.Parse()
-
-	// use the current context in kubeconfig
-	config, err := clientcmd.BuildConfigFromFlags("", *kubeconfig)
+	// creates the in-cluster config
+	config, err := rest.InClusterConfig()
 	if err != nil {
 		panic(err.Error())
 	}
@@ -41,10 +31,10 @@ func main() {
 	}
 
 	r := eventRecorder(clientset)
-	pod := &v1.Pod{
+	d := &appsv1.Deployment{
 		ObjectMeta: metav1.ObjectMeta{
-			Name:      "book",
-			Namespace: "default",
+			Name:      "rabbit-hole",
+			Namespace: "wonderland",
 		},
 	}
 
@@ -56,8 +46,8 @@ func main() {
 	for scanner.Scan() {
 		line := scanner.Text()
 		if line != "" {
-			r.Event(pod, "Normal", "Paragraph", line)
-			time.Sleep(2 * time.Second)
+			r.Event(d, "Normal", "Paragraph", line)
+			time.Sleep(7 * time.Second)
 		}
 	}
 }

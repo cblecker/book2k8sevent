@@ -1,9 +1,9 @@
 .PHONY: default
-default: run
+default: go-build
 
-.PHONY: run
-run:
-	go run .
+.PHONY: go-build
+go-build:
+	go build -o _output/ .
 
 bindata.go:
 	go-bindata data/
